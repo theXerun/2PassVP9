@@ -43,6 +43,7 @@ function getVideoLength () {
 
 
 function calculateBitrate() {
+    local bitrate
     bitrate=$((DESIRED_SIZE*8192/VIDEO_LENGTH))
     echo "${bitrate}"
     return 0
@@ -53,14 +54,14 @@ function main() {
     while getopts ':i:u:s:o:' options; do
         case "$options" in
             i)
-                FILEPATH=${OPTARG}
+                FILEPATH=$OPTARG
                 if [[ ! -f "$FILEPATH" ]]; then
                     echo "Not a valid filepath"
                     exit_abnormal
                 fi
                 ;;
             u)
-                DESIRED_RESOLUTION=${OPTARG}
+                DESIRED_RESOLUTION=$OPTARG
                 if [[ $DESIRED_RESOLUTION -le 0 ]]; then
                     echo "Desired resolution has to be greater than 0"
                     exit_abnormal
@@ -119,7 +120,6 @@ function main() {
     if [[ DESIRED_RESOLUTION -ge 720 ]]; then
         SPEED=2
     fi
-   
 
     ffmpeg -i "$FILEPATH" -c:v libvpx-vp9 -b:v $VIDEO_BITRATE"k" -vf scale=-1:"$DESIRED_RESOLUTION" -pix_fmt yuv420p10le -quality good -threads 4 -profile:v 2 -lag-in-frames 25 -cpu-used 4 -auto-alt-ref 1 -arnr-maxframes 7 -arnr-strength 4 -aq-mode 0 -tile-rows 0 -tile-columns 1 -enable-tpl 1 -row-mt 1 -speed 4 -pass 1 -an -f null /dev/null
     trap SIGINT
